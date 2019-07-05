@@ -31,6 +31,7 @@
           <h1 class="title">{{ item.name }}</h1>
           <ul>
             <li
+              @click="selectFood(food)"
               v-for="(food, index) in item.foods"
               class="food-item border-1px"
               :key="index"
@@ -51,16 +52,31 @@
                     >¥{{ food.oldPrice }}</span
                   >
                 </div>
+                <div class="cartcontrol-wrapper">
+                  <!-- 传递参数给cartcontrol组件 -->
+                  <cartcontrol :food="food"></cartcontrol>
+                </div>
               </div>
             </li>
           </ul>
         </li>
       </ul>
     </div>
+    <!-- 联动购物车与商品，传递参数给shopcart组件 -->
+    <shopcart
+      :select-foods="selectFoods"
+      :delivery-price="seller.deliveryPrice"
+      :min-price="seller.minPrice"
+    ></shopcart>
+    <!-- 商品详情覆盖层 -->
+    <food :food="selectedFood" ref="food"></food>
   </div>
 </template>
 <script type='text/ecmascript-6'>
 import BScroll from 'better-scroll'
+import shopcart from '../shopcart/shopcart'
+import cartcontrol from '../cartcontrol/cartcontrol'
+import food from '../food/food'
 
 const ERR_OK = 0
 
@@ -74,11 +90,12 @@ export default {
     return {
       goods: [],
       listHeight: [], // 存储区间高度
-      scrollY: 0
+      scrollY: 0,
+      selectedFood: {}
     }
   },
   computed: {
-    // 当scrollY发生变化时，currentIndex会实时变化计算
+    // 计算滚动区间，变换css,当scrollY发生变化时，currentIndex会实时变化计算
     currentIndex () {
       // 遍历listHeight
       for (let i = 0; i < this.listHeight.length; i++) {
@@ -91,6 +108,19 @@ export default {
         }
       }
       return 0 // 若listHeight没有的话，返回0
+    },
+    // 选中的商品
+    selectFoods () {
+      let foods = []
+      // 遍历所有商品中每个分类下的food，判断商品数量是否大于零，找到所有被选择的商品
+      this.goods.forEach((good) => {
+        good.foods.forEach((food) => {
+          if (food.count) {
+            foods.push(food)
+          }
+        })
+      })
+      return foods
     }
   },
   created () {
@@ -110,17 +140,28 @@ export default {
   methods: {
     // 左侧点击事件
     selectMenu (index) {
+      // vue2.0不需要判断是浏览器还是手机端
+      // if (!event._constructed) {
+      //   return;
+      // }
       let foodList = this.$refs.foodsWrapper.getElementsByClassName('food-list-hook')
       let el = foodList[index]
       this.foodsScroll.scrollToElement(el, 300)
       console.log(index)
     },
-    // 2.0版没有this.$els.menuWrapper，改为this.$refs.menuWrapper
+    // 展开商品详情页
+    selectFood (food) {
+      this.selectedFood = food
+      this.$refs.food.show() // 拿到子组件的show方法
+    },
+    // 滚动监听，2.0版没有this.$els.menuWrapper，改为this.$refs.menuWrapper
     _initScroll () {
+      // 监听ref的滚动
       this.menuScroll = new BScroll(this.$refs.menuWrapper, {
         click: true // 设置可点击
       })
       this.foodsScroll = new BScroll(this.$refs.foodsWrapper, {
+        click: true, // 设置可点击
         probeType: 3 // 实时监测滚动位置
       })
       // foodsScroll监测scroll,scroll滚动时把位置实时暴露出来
@@ -128,6 +169,7 @@ export default {
         this.scrollY = Math.abs(Math.round(pos.y))
       })
     },
+    // 计算高度
     _calculateHeight () {
       let foodList = this.$refs.foodsWrapper.getElementsByClassName('food-list-hook')
       let height = 0
@@ -138,6 +180,12 @@ export default {
         this.listHeight.push(height)
       }
     }
+  },
+  // 注册组件
+  components: {
+    shopcart,
+    cartcontrol,
+    food
   }
 }
 </script>
@@ -287,6 +335,12 @@ export default {
             font-size: 10px;
             color: rgb(147, 153, 159);
           }
+        }
+
+        .cartcontrol-wrapper {
+          position: absolute;
+          right: 0;
+          bottom: 12px;
         }
       }
     }
