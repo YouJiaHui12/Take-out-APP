@@ -2,7 +2,7 @@
   <div class="goods">
     <div class="menu-wrapper" ref="menuWrapper">
       <ul>
-        <!-- 2.0版将$index改为index -->
+        <!-- 2.0版将$index改为index，index为序号 -->
         <li
           v-for="(item, index) in goods"
           class="menu-item"
@@ -94,6 +94,7 @@ export default {
       selectedFood: {}
     }
   },
+  // computed只在需要时更新
   computed: {
     // 计算滚动区间，变换css,当scrollY发生变化时，currentIndex会实时变化计算
     currentIndex () {
@@ -137,8 +138,9 @@ export default {
       }
     })
   },
+  // methods里放需要点击时触发的函数
   methods: {
-    // 左侧点击事件
+    // 左侧点击事件，将左侧Menu的index与右侧foodList数组的index对应起来
     selectMenu (index) {
       // vue2.0不需要判断是浏览器还是手机端
       // if (!event._constructed) {
@@ -154,9 +156,9 @@ export default {
       this.selectedFood = food
       this.$refs.food.show() // 拿到子组件的show方法
     },
-    // 滚动监听，2.0版没有this.$els.menuWrapper，改为this.$refs.menuWrapper
+    // 滚动监听
     _initScroll () {
-      // 监听ref的滚动
+      // 监听ref的滚动，2.0版没有this.$els.menuWrapper，改为this.$refs.menuWrapper
       this.menuScroll = new BScroll(this.$refs.menuWrapper, {
         click: true // 设置可点击
       })
@@ -169,7 +171,7 @@ export default {
         this.scrollY = Math.abs(Math.round(pos.y))
       })
     },
-    // 计算高度
+    // 计算右侧每个区域的高度
     _calculateHeight () {
       let foodList = this.$refs.foodsWrapper.getElementsByClassName('food-list-hook')
       let height = 0

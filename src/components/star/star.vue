@@ -33,8 +33,11 @@ export default {
     },
     itemClasses () {
       let result = []
+      // 分出是否有0.5半星，分数为4.6，计算出score为4.5
       let score = Math.floor(this.score * 2) / 2
+      // 计算有几颗半星，求余
       let hasDecimal = score % 1 !== 0
+      // 计算有几颗全星，Math.floor()向下取整，4.6取4
       let integer = Math.floor(score)
       for (let i = 0; i < integer; i++) {
         result.push(CLS_ON)
